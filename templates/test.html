@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="chartArea">
+    <canvas id="myChart" width="400" height="400"></canvas>
+    <canvas id="myChart2" width="400" height="400"></canvas>
+</div>
+
+<script>
+
+var date = new Date();
+var yyyy = date.getFullYear();
+var mm = ("0"+( date.getMonth()+1)).slice(-2);
+var dd = ("0"+ date.getDate()).slice(-2);
+var today =  yyyy+'-'+ mm+'-'+ dd;
+
+
+class Graph {
+
+    constructor(graphName) {
+        this.graphName = graphName;
+        this.endpoint = 'api/data';
+        this.graphDate = today;
+    }
+
+    get getDate() {
+        return this.graphDate;
+    }
+
+    set setDate(val) {
+        this.graphDate = val;
+    }
+
+    getTempData(date) {
+        console.log(date)
+        var defer = $.Deferred();
+        $.ajax({
+            method: "GET",
+            url: this.endpoint,
+            data: "prm="+date  
+        })
+        .then(
+            defer.resolve,
+            defer.reject
+        );
+        return defer.promise();
+    }
+
+    chartConfig　= (labels, yData ,realtime=false,type="line",) => {
+    var get_data = function(){
+        $.getJSON("http://httpserver.local:3000/", function(data) {
+        value = data.temp;
+        });
+        return  value
+
+    }
+    var config = {};
+    //グラフの種類 
+    config.type = type;
+
+    if (!realtime) {
+    //--------リアルタイムではない場合----------//
+    config.data =  {
+                        labels: labels,
+                        datasets: [{
+                            label: 'title',
+                            data: yData,
+                            borderColor: "rgba(255,0,0,1)",
+                            backgroundColor: "rgba(0,0,0,0)",
+                        }]
+                    };
+    config.options ={
+                        animation:false,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero:true
+                                }
+                            }]
+                        }
+                    };
+    }else{
+    //--------リアルタイムの場合----------//
+    config.data = {
+        datasets: [{data: []}]
+    };
+    config.options = {
+                        scales: {
+                        xAxes: [{
+                            delay: 2000,
+                            maxTicksLimit: 60,
+                            autoSkip: false,
+                            type: 'realtime',
+                            realtime: {
+                                duration: 60000,
+                                onRefresh: function(chart) {
+                                chart.data.datasets.forEach(function(dataset) {
+                                    dataset.data.push({
+                                    x: Date.now(),
+                                    //y: get_data(),
+                                    y: Math.random()
+                                    });
+                                });
+                                }
+
+                            }
+                        }],
+                        yAxes: [{
+                                ticks: {
+                                suggestedMax: 40,
+                                suggestedMin: 20,
+                                stepSize: 2,
+                                }
+                            }]
+                        }
+                    };
+
+    };
+    return config
+}
+
+
+
+    setChart = (labels, yData) =>{
+        var ctx = document.getElementById(this.graphName).getContext('2d');
+        var myChart = new Chart(ctx, 
+        //this.chartConfig(labels, yData)
+        this.chartConfig(labels,yData,true)
+/*         {
+        type: 'line',
+        data: {
+            datasets: [{
+            data: []
+            }, {
+            data: []
+            }]
+        },
+        options: {
+            scales: {
+            xAxes: [{
+                delay: 2000,
+                maxTicksLimit: 60,
+                autoSkip: false,
+                type: 'realtime',
+                realtime: {
+                    duration: 60000,
+                    onRefresh: function(chart) {
+                    chart.data.datasets.forEach(function(dataset) {
+                        dataset.data.push({
+                        x: Date.now(),
+                        //y: get_data(),
+                        y: Math.random()
+                        });
+                    });
+                    }
+
+                }
+            }],
+            yAxes: [{
+                    ticks: {
+                    suggestedMax: 40,
+                    suggestedMin: 20,
+                    stepSize: 2,
+                    }
+                }]
+            }
+        }
+        } */
+
+/*         {
+            type:"line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'title',
+                    data: yData,
+                    borderColor: "rgba(255,0,0,1)",
+                    backgroundColor: "rgba(0,0,0,0)",
+            }]
+            },
+            options: {
+                animation:false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        } */
+        );
+
+    }   
+    
+    showChart() {
+        this.getTempData(this.graphDate)
+        .then(
+            (data) => {
+/*                 if (myChart) {
+            　　　　window.myChart.destroy();
+        　　　　} */
+                var labels = data.labels;
+                var yData = data.temp;
+                console.log(data.title)
+
+                this.setChart(labels, yData);
+            },
+            (error) => {
+                console.log("error");
+            }
+        )
+
+    }
+
+}
+
+chart1 = new Graph("myChart");
+chart2 = new Graph("myChart2");
+//chart1.setDate = "2020-2-29";
+//console.log(chart1.getDate)
+chart1.showChart();
+//chart2.setDate = "2020-2-28";
+//chart2.showChart();
+//console.log(chart2.chartConfig("labels", "yData",realtime=true))
+
+</script>
+
+{% endblock %}

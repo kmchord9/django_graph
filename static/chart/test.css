@@ -1,0 +1,7 @@
+h1 { color: red;}
+
+.container table td.text-center {
+    vertical-align: middle;
+    font-size: 30px;
+}
+

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="chartArea">
+    <canvas id="myChart" width="400" height="400"></canvas>
+</div>
+
+<script>
+var Chart = (function(){
+
+    //変数
+    var endpoint = 'api/data';
+    var xData;
+    var yData;
+    var labels;
+    var date = new Date();
+    var yyyy = date.getFullYear();
+    var mm = ("0"+( date.getMonth()+1)).slice(-2);
+    var dd = ("0"+ date.getDate()).slice(-2);
+    var today =  yyyy+'-'+ mm+'-'+ dd;
+    var ctx;
+    var x = 5;
+
+    
+    //コンストラクタ
+    var Chart = function(chartName) {
+        if(!(this instanceof Chart)){
+            return new Chart(chartName);
+        }
+
+        this.chartName = chartName;
+    }
+    var c = Chart.prototype;
+
+    c.getData = function(date=today){
+        //console.log(x);
+        //x=6
+        //console.log(x);
+        $.ajax({
+            method: "GET",
+            url: endpoint,
+            data: date
+        })
+        .then(
+            function(data){
+                labels = data.labels;
+                yData = data.temp;
+                //title = data.title
+               // console.log(labels)
+                return data
+            },
+            function(error) {
+                console.log("error");
+            }
+        );
+    }
+
+    //グラフ描画
+    c.setChart = function(){
+    console.log(this.getData())
+    ctx = document.getElementById(this.chartName).getContext('2d');
+        window.myChart = new Chart(ctx, {
+            type:"line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "temp",
+                    data: yData,
+                    borderColor: "rgba(255,0,0,1)",
+                    backgroundColor: "rgba(0,0,0,0)",
+            }]
+            },
+            options: {
+                animation:false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        });
+    } 
+    
+    c.getter = function() {
+        return x
+    };
+
+    
+    return Chart;
+})();
+
+chart1 = new Chart("myChart");
+//temp = chart1.;
+chart1.getData();
+chart1.setChart();
+
+console.log(chart1.getter());
+</script>
+
+{% endblock %}

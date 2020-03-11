@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="chartArea">
+    <canvas id="myChart" width="400" height="400"></canvas>
+</div>
+
+<script>
+
+var ctx = document.getElementById('myChart').getContext('2d');
+var chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    datasets: [{
+      data: []
+    }, {
+      data: []
+    }]
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        delay: 2000,
+        maxTicksLimit: 60,
+        autoSkip: false,
+        type: 'realtime',
+        realtime: {
+            duration: 60000,
+            onRefresh: function(chart) {
+            chart.data.datasets.forEach(function(dataset) {
+                dataset.data.push({
+                x: Date.now(),
+                y: get_data(),
+                });
+            });
+            }
+
+        }
+      }],
+      yAxes: [{
+            ticks: {
+            suggestedMax: 40,
+            suggestedMin: 20,
+            stepSize: 2,
+            }
+        }]
+    }
+  }
+});
+
+var value = 0;
+function get_data() {
+    $.getJSON("http://httpserver.local:3000/", function(data) {
+        value = data.temp;
+    });
+    return value;
+};
+
+</script>
+
+{% endblock %}

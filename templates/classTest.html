@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<script>
+
+var Person = (function() {
+
+    var value = 0;
+
+    var Person = function(firstName){
+        this.firstName = firstName;
+    }
+
+    Person.prototype = {
+        setName: function(name){
+            this.firstName = name;
+            //(function(){
+            //    value = 5;
+            //})();
+            console.log(value)
+        }
+    }
+    return Person
+})();
+
+matu = new Person("matu");
+console.log(matu.setName("mase"));
+console.log(matu.value)
+
+
+</script>
+
+{% endblock %}
